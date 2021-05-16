@@ -11,7 +11,8 @@ pub async fn get_location_info(req: Request<()>) -> tide::Result<Response> {
     let postcode = req.param("postcode");
 
     if let Ok(input_postcode) = postcode {
-        let postcode = Postcode::new(input_postcode.to_owned(), None);
+        let space_correction = input_postcode.replace("%20", "");
+        let postcode = Postcode::new(space_correction, None);
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(serde_json::to_string(&postcode)?);
         res.append_header("Content-Type", "application/json");

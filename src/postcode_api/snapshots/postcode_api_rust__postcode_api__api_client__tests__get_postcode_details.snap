@@ -1,0 +1,13 @@
+---
+source: src/postcode_api/api_client.rs
+expression: result
+
+---
+{
+  "status": 200,
+  "result": {
+    "postcode": "WC2N 5DU",
+    "longitude": -0.128294,
+    "latitude": 51.507209
+  }
+}
