@@ -1,10 +1,11 @@
 use crate::api::handlers;
+use crate::api::state::State;
 use crate::Config;
 
-pub async fn start_api(config: Config) -> tide::Result<()> {
+pub async fn start_api(config: Config, state: State) -> tide::Result<()> {
     let port = config.port;
 
-    let mut app = tide::new();
+    let mut app = tide::with_state(state);
     app.at("/healthz").get(handlers::handle_health_check);
 
     app.at("/postcode/:postcode")

@@ -1,13 +1,14 @@
+use crate::api::state;
 use crate::postcode::Postcode;
 use tide::{Request, Response, StatusCode};
 
-pub async fn handle_health_check(_: Request<()>) -> tide::Result<Response> {
+pub async fn handle_health_check(_: Request<state::State>) -> tide::Result<Response> {
     let mut res = Response::new(StatusCode::NoContent);
     res.set_body("");
     Ok(res)
 }
 
-pub async fn get_location_info(req: Request<()>) -> tide::Result<Response> {
+pub async fn get_location_info(req: Request<state::State>) -> tide::Result<Response> {
     let postcode = req.param("postcode");
 
     if let Ok(input_postcode) = postcode {
