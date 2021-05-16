@@ -11,6 +11,9 @@ pub async fn start_api(config: Config, state: State) -> tide::Result<()> {
     app.at("/postcode/:postcode")
         .get(handlers::get_location_info);
 
+    app.at("/postcodes")
+        .post(handlers::multiple_get_location_info);
+
     app.listen(format!("127.0.0.1:{}", port)).await?;
 
     Ok(())

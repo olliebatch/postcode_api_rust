@@ -1,5 +1,5 @@
 use crate::api::state;
-use crate::postcode::Postcode;
+use crate::postcode::{Postcode, Postcodes};
 use tide::{Request, Response, StatusCode};
 
 pub async fn handle_health_check(_: Request<state::State>) -> tide::Result<Response> {
@@ -26,4 +26,23 @@ pub async fn get_location_info(req: Request<state::State>) -> tide::Result<Respo
         StatusCode::BadRequest,
         "Invalid PostCode Provided",
     ))
+}
+
+pub async fn multiple_get_location_info(mut req: Request<state::State>) -> tide::Result<Response> {
+    let post_code_request: Vec<String> = req.body_json().await?;
+    let postcodes: Vec<Postcode> = post_code_request
+        .iter()
+        .map(|postcode| Postcode::new(postcode.replace("%20", ""), None))
+        .collect();
+
+    let postcode_wrapper = Postcodes::new(postcodes);
+
+    let postcode_api = req.state().clone().postcode_api()?;
+
+    let postcodes_with_loc = postcode_wrapper.with_locations(postcode_api).await?;
+
+    let mut res = Response::new(StatusCode::Ok);
+    res.set_body(serde_json::to_string(&postcodes_with_loc)?);
+    res.append_header("Content-Type", "application/json");
+    return Ok(res);
 }

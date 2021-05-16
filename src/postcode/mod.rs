@@ -13,6 +13,8 @@ pub struct Location {
     latitude: f64,
     longitude: f64,
 }
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct Postcodes(Vec<Postcode>);
 
 impl Postcode {
     pub fn new(postcode: String, location: Option<Location>) -> Self {
@@ -38,6 +40,36 @@ impl From<PostCodeDetails> for Postcode {
                 longitude: client_response.longitude,
             }),
         )
+    }
+}
+
+impl Postcodes {
+    pub fn new(postcodes: Vec<Postcode>) -> Self {
+        Postcodes(postcodes)
+    }
+    pub fn get_postcodes_vec(self) -> Vec<String> {
+        self.0
+            .iter()
+            .map(|postcode| postcode.postcode.clone())
+            .collect()
+    }
+
+    pub async fn with_locations(
+        self,
+        postcode_api: PostcodeApiClient,
+    ) -> Result<Self, PostcodeApiErrors> {
+        let result = postcode_api.get_many_post_codes_info(self).await;
+        match result {
+            Ok(postcodes) => {
+                let postcode = postcodes
+                    .result
+                    .into_iter()
+                    .map(|postcode_response| postcode_response.result.into())
+                    .collect::<Vec<Postcode>>();
+                Ok(Postcodes(postcode))
+            }
+            Err(err) => Err(err),
+        }
     }
 }
 
