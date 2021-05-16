@@ -1,0 +1,12 @@
+---
+source: src/postcode/mod.rs
+expression: postcode_with_loc
+
+---
+{
+  "postcode": "WC2N 5DU",
+  "location": {
+    "latitude": 51.507209,
+    "longitude": -0.128294
+  }
+}
