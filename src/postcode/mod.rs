@@ -75,7 +75,7 @@ impl Postcodes {
 
 #[cfg(test)]
 mod tests {
-    use crate::postcode::Postcode;
+    use crate::postcode::{Postcode, Postcodes};
     use crate::postcode_api::api_client::PostcodeApiClient;
     use httpmock::MockServer;
     use serde_json::json;
@@ -88,7 +88,7 @@ mod tests {
         let postcode = "WC2N 5DU";
         // Arrange
         let server = MockServer::start();
-        let mock = server.mock(|when, then| {
+        server.mock(|when, then| {
             when.method("GET").path_contains("/postcodes");
             then.status(200)
                 .json_body(json!({ "status": 200, "result": {
@@ -103,6 +103,54 @@ mod tests {
         let postcode_struct = Postcode::new(postcode.to_owned(), None);
 
         let postcode_with_loc = postcode_struct.with_location(client).await.unwrap();
+
+        insta::assert_json_snapshot!(postcode_with_loc)
+    }
+
+    #[async_std::test]
+    async fn multiple_with_locations() {
+        // This would be nicer to mock the trait of the profile api client.
+        // For the essence of time i've left this as the same code for profile client can work here.
+        let postcodes = vec![
+            Postcode::new("OX49 5NU".to_owned(), None),
+            Postcode::new("M32 0JG".to_owned(), None),
+            Postcode::new("NE30 1DP".to_owned(), None),
+        ];
+        let postcode_wrapper = Postcodes::new(postcodes);
+        // Arrange
+        let server = MockServer::start();
+        server.mock(|when, then| {
+            when.method("POST").path_contains("/postcodes");
+            then.status(200)
+                .json_body(json!({ "status": 200, "result":[{
+                        "query": "OX49 5NU",
+                         "result": {
+                        "postcode": "OX49 5NU",
+                        "longitude": -1.069752,
+                        "latitude": 51.655929}
+                },
+                    {
+                        "query": "M32 0JG",
+                         "result": {
+                        "postcode": "M32 0JG",
+                        "longitude": -2.302836,
+                        "latitude": 53.455654
+                    }},
+                        {
+                        "query": "NE30 1DP",
+                         "result": {
+                        "postcode": "NE30 1DP",
+                        "longitude": -1.439269,
+                        "latitude": 55.011303
+                        }
+                            }
+                ]}
+                ));
+        });
+
+        let client = PostcodeApiClient::new(&server.base_url()).unwrap();
+
+        let postcode_with_loc = postcode_wrapper.with_locations(client).await.unwrap();
 
         insta::assert_json_snapshot!(postcode_with_loc)
     }
