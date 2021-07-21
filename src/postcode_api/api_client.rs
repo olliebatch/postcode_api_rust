@@ -39,11 +39,11 @@ impl PostcodeApiClient {
     ) -> Result<PostcodeClientResponse, PostcodeApiErrors> {
         let request = self
             .http
-            .get(format!("{}/postcodes/{}", self.base_url, postcode));
+            .get(format!("{}postcodes/{}", self.base_url, postcode));
 
         let mut response = request.await?;
         if response.status() != StatusCode::Ok {
-            println!("{:?}", response.status());
+            println!("response status: {:?}", response.status());
             return Err(PostcodeApiErrors::BadResponse);
         }
         let postcode_details = response.body_json().await?;
